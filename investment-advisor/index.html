@@ -12,6 +12,7 @@
     <link rel="icon" href="./sky-invest-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./sky-invest-icon.svg" />
     <link rel="stylesheet" href="./styles.css?v=20260701-layout" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
     <main class="shell">
@@ -586,6 +587,59 @@
           <button id="saveProfileBtn" class="mini-button" type="button">保存到這個 Gmail</button>
         </div>
         <span id="profileStatus" class="profile-status">目前使用本機預設 portfolio</span>
+      </div>
+      <div class="cloud-box">
+        <div class="cloud-head">
+          <div>
+            <p class="eyebrow">Cloud Sync</p>
+            <h3>Supabase 登入 + 雲端同步</h3>
+          </div>
+          <span id="cloudStatus" class="profile-status">未連接</span>
+        </div>
+        <label>
+          Supabase Project URL
+          <input id="supabaseUrl" type="url" placeholder="https://xxxxx.supabase.co" autocomplete="off" />
+        </label>
+        <label>
+          Supabase anon public key
+          <input id="supabaseAnonKey" type="password" placeholder="eyJhbGciOi..." autocomplete="off" />
+        </label>
+        <label>
+          登入 Email
+          <input id="cloudEmail" type="email" placeholder="you@gmail.com" autocomplete="email" />
+        </label>
+        <div class="profile-actions">
+          <button id="saveCloudConfigBtn" class="mini-button" type="button">保存 Supabase 設定</button>
+          <button id="sendMagicLinkBtn" class="mini-button" type="button">寄登入連結</button>
+          <button id="cloudUploadBtn" class="mini-button" type="button">同步到雲端</button>
+          <button id="cloudDownloadBtn" class="mini-button" type="button">從雲端載入</button>
+          <button id="cloudSignOutBtn" class="mini-button danger-button" type="button">登出</button>
+        </div>
+        <details class="cloud-sql">
+          <summary>Supabase 需要建立的資料表</summary>
+          <textarea readonly>create table if not exists public.portfolios (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text,
+  profile_email text,
+  holdings jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.portfolios enable row level security;
+
+create policy "Users can read own portfolio"
+on public.portfolios for select
+using (auth.uid() = user_id);
+
+create policy "Users can insert own portfolio"
+on public.portfolios for insert
+with check (auth.uid() = user_id);
+
+create policy "Users can update own portfolio"
+on public.portfolios for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);</textarea>
+        </details>
       </div>
       <div class="codex-actions">
         <button id="copyCodexPrompt" class="mini-button" type="button">複製給 Codex 的指令</button>
