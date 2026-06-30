@@ -10,7 +10,7 @@ const defaultHoldings = [
     pnl: -862.49,
     today: -1.85,
     theme: "Fintech / 成長股",
-    news: "近期市場焦點在 stablecoin/fintech 題材，但估值波動大，先等量能確認。",
+    news: "2026-07-01：高波動 fintech 倉，不急補。先看是否守住第一支撐，反彈靠近壓力位可考慮減壓。",
     comments: {
       bullish: "市場常討論它的 fintech 成長、會員增長、金融產品交叉銷售。",
       bearish: "擔心估值、利率環境、貸款風險和成長股波動。",
@@ -28,7 +28,7 @@ const defaultHoldings = [
     pnl: -62.0,
     today: 1.36,
     theme: "Digital Bank / 拉美",
-    news: "拉美 digital bank 成長故事仍在，但利率和估值會影響短期波動。",
+    news: "2026-07-01：成長故事仍在，但目前成本偏高。等止跌/放量再小額分批，不適合一次拉低成本。",
     comments: {
       bullish: "常被看作拉美 digital bank 高成長代表，市場喜歡它的用戶增長。",
       bearish: "估值、匯率、巴西利率和信貸週期是主要擔心。",
@@ -46,7 +46,7 @@ const defaultHoldings = [
     pnl: -586.22,
     today: -9.18,
     theme: "Consumer / 食品",
-    news: "消費股若財報或毛利率轉弱，不能只因跌深就補，先看下一次財報。",
+    news: "2026-07-01：目前是最需要紀律的一支。除非財報/毛利率改善，不建議因跌深硬補。",
     comments: {
       bullish: "支持者看好品牌、健康食品趨勢和高品質雞蛋定位。",
       bearish: "市場擔心增長放慢、毛利率、食品成本和競爭。",
@@ -64,7 +64,7 @@ const defaultHoldings = [
     pnl: -27.72,
     today: 4.2,
     theme: "Super App / 東南亞",
-    news: "東南亞平台股適合觀察盈利能力和現金流改善，反彈時可減壓。",
+    news: "2026-07-01：虧損幅度相對可控。若反彈接近成本區，可先減壓；若跌回支撐才重新觀察加倉。",
     comments: {
       bullish: "市場看好東南亞 super app、生態和盈利改善。",
       bearish: "擔心競爭、補貼、增長放慢和估值修復時間太久。",
@@ -82,7 +82,7 @@ const defaultHoldings = [
     pnl: -500.0,
     today: -25.0,
     theme: "Property / Dividend",
-    news: "地產股重點看派息、銷售進度與利率環境，跌到估值舒服才分批。",
+    news: "2026-07-01：地產收息倉，重點看派息與銷售進度。可等更舒服價格，不必急補。",
     comments: {
       bullish: "投資者通常看重股息、土地儲備和房產銷售韌性。",
       bearish: "擔心地產週期、利率、銷售放慢和估值折價。",
@@ -100,7 +100,7 @@ const defaultHoldings = [
     pnl: -30.0,
     today: 40.0,
     theme: "Bank / Dividend",
-    news: "銀行股息倉可留意除息、淨利息收益率和大盤資金流。",
+    news: "2026-07-01：接近成本，適合繼續當股息倉觀察；加倉要避免和 Maybank/CIMB 過度重疊。",
     comments: {
       bullish: "常被視為股息穩定、估值合理的馬股銀行選擇。",
       bearish: "擔心銀行業息差壓縮、壞帳和股息成長有限。",
@@ -118,7 +118,7 @@ const defaultHoldings = [
     pnl: 264.0,
     today: 0.0,
     theme: "Bank / Core",
-    news: "核心股息倉，重點不是追高，而是在回調時慢慢累積。",
+    news: "2026-07-01：目前有利潤，是馬股核心底倉。不要追高，回調才考慮分批，股息率要比價格更重要。",
     comments: {
       bullish: "市場普遍把它看作馬股銀行龍頭和長期股息核心。",
       bearish: "風險是價格太高時股息率下降，以及銀行業週期。",
@@ -210,20 +210,20 @@ const learningResources = [
 
 const codexBriefingPlan = [
   {
-    title: "每日市場摘要",
-    copy: "美股、馬股、新加坡、中國/港股的重點新聞、財報、利率和大盤情緒。",
+    title: "2026-07-01 今日總體",
+    copy: "免費行情源今日回應不穩，先不偽造即時價。操作上用券商現價確認：美股成長倉先防守，馬股股息倉可作核心觀察。",
   },
   {
-    title: "你的 Portfolio 更新",
-    copy: "檢查持倉是否到買入區、破支撐、接近壓力位，並更新解套和轉倉建議。",
+    title: "你的 Portfolio 狀況",
+    copy: "目前最大壓力仍在 VITL、NU、SOFI；GRAB 較接近可觀察反彈減壓。MAYBANK 有利潤，RHB 接近成本，MATRIX 屬收息/地產週期觀察。",
   },
   {
-    title: "學習重點整理",
-    copy: "從華語財經頻道/新聞裡提煉一個新手能懂的概念，例如股息率、估值、REIT、ETF。",
+    title: "今日部署建議",
+    copy: "有新錢時，不建議一次補最弱美股。優先保留現金，等支撐位；馬股股息核心只在回調分批，Maybank 不追高，RHB/MATRIX 看派息與大盤情緒。",
   },
   {
-    title: "候選股 Watchlist",
-    copy: "只列值得觀察的原因和風險，不直接叫你追高買入。",
+    title: "今日學習點",
+    copy: "Avg down 不是跌越多越要買，而是公司基本面沒壞、價格到支撐、單一股比例不過重時，才小額分批降低成本。",
   },
 ];
 
@@ -482,10 +482,10 @@ const dividendCandidates = [
 ];
 
 const marketPulse = {
-  mood: "Neutral",
-  title: "今天策略：先收息核心，後抄底",
+  mood: "Cautious",
+  title: "今天策略：先確認行情，不急著補最弱倉",
   reason:
-    "你目前美股有虧損倉被鎖住，新錢不應該第一時間拿去補最弱的股票。先用穩定股息資產建立現金流，再等美股反彈減壓。",
+    "2026-07-01 更新：你的美股虧損倉仍需要時間解套，新錢先不要急著平均下去。若手上有現金，優先分三份：一份留現金、一份等馬股股息核心回調、一份只在美股跌到支撐後小額試單。",
 };
 
 const pct = (item) => ((item.price - item.cost) / item.cost) * 100;
