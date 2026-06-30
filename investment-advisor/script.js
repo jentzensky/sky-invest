@@ -141,6 +141,8 @@ let currentRegion = "all";
 let currentIdea = "all";
 let currentAllocationMarket = "MY";
 const userSettings = loadSettings();
+let cloudClient = null;
+let cloudSession = null;
 
 const glossary = [
   {
@@ -538,6 +540,162 @@ function updateProfileStatus() {
       ? `目前 profile：${email} · 此裝置獨立保存`
       : "目前使用本機預設 portfolio";
   }
+}
+
+function loadCloudConfig() {
+  try {
+    return {
+      url: "",
+      anonKey: "",
+      email: "",
+      ...(JSON.parse(localStorage.getItem("skyInvestCloudConfig") || "{}")),
+    };
+  } catch (error) {
+    return { url: "", anonKey: "", email: "" };
+  }
+}
+
+function saveCloudConfig(config) {
+  localStorage.setItem("skyInvestCloudConfig", JSON.stringify(config));
+}
+
+function setCloudStatus(message, tone = "muted") {
+  const status = document.querySelector("#cloudStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.dataset.tone = tone;
+}
+
+function readCloudConfigFromUi() {
+  return {
+    url: document.querySelector("#supabaseUrl")?.value.trim() || "",
+    anonKey: document.querySelector("#supabaseAnonKey")?.value.trim() || "",
+    email: document.querySelector("#cloudEmail")?.value.trim().toLowerCase() || "",
+  };
+}
+
+function applyCloudConfigToUi() {
+  const config = loadCloudConfig();
+  const activeEmail = activeProfileEmail();
+  const url = document.querySelector("#supabaseUrl");
+  const key = document.querySelector("#supabaseAnonKey");
+  const email = document.querySelector("#cloudEmail");
+  if (url) url.value = config.url;
+  if (key) key.value = config.anonKey;
+  if (email) email.value = config.email || activeEmail;
+}
+
+function getCloudClient() {
+  const config = loadCloudConfig();
+  if (!config.url || !config.anonKey) {
+    setCloudStatus("請先保存 Supabase 設定", "warn");
+    return null;
+  }
+  if (!window.supabase?.createClient) {
+    setCloudStatus("Supabase SDK 載入中，請稍後再試", "warn");
+    return null;
+  }
+  if (!cloudClient) {
+    cloudClient = window.supabase.createClient(config.url, config.anonKey);
+  }
+  return cloudClient;
+}
+
+async function refreshCloudSession() {
+  const client = getCloudClient();
+  if (!client) return null;
+  const { data, error } = await client.auth.getSession();
+  if (error) {
+    setCloudStatus(`登入狀態讀取失敗：${error.message}`, "danger");
+    return null;
+  }
+  cloudSession = data.session;
+  if (cloudSession?.user?.email) {
+    setActiveProfileEmail(cloudSession.user.email);
+    updateProfileStatus();
+    setCloudStatus(`已登入：${cloudSession.user.email}`, "ok");
+  } else {
+    setCloudStatus("未登入 Supabase", "muted");
+  }
+  return cloudSession;
+}
+
+async function sendMagicLink() {
+  const config = readCloudConfigFromUi();
+  if (!config.url || !config.anonKey || !config.email) {
+    setCloudStatus("請填 Project URL、anon key 和 Email", "warn");
+    return;
+  }
+  saveCloudConfig(config);
+  cloudClient = null;
+  const client = getCloudClient();
+  if (!client) return;
+  const { error } = await client.auth.signInWithOtp({
+    email: config.email,
+    options: { emailRedirectTo: `${location.origin}${location.pathname}` },
+  });
+  if (error) {
+    setCloudStatus(`登入連結寄送失敗：${error.message}`, "danger");
+    return;
+  }
+  setCloudStatus(`登入連結已寄到 ${config.email}`, "ok");
+}
+
+async function uploadPortfolioToCloud() {
+  const session = cloudSession || (await refreshCloudSession());
+  if (!session?.user) {
+    setCloudStatus("請先用 Email 登入", "warn");
+    return;
+  }
+  const client = getCloudClient();
+  if (!client) return;
+  saveHoldings();
+  const payload = {
+    user_id: session.user.id,
+    email: session.user.email,
+    profile_email: activeProfileEmail() || session.user.email,
+    holdings,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await client.from("portfolios").upsert(payload, { onConflict: "user_id" });
+  if (error) {
+    setCloudStatus(`同步失敗：${error.message}`, "danger");
+    return;
+  }
+  setCloudStatus(`已同步到雲端：${session.user.email}`, "ok");
+}
+
+async function downloadPortfolioFromCloud() {
+  const session = cloudSession || (await refreshCloudSession());
+  if (!session?.user) {
+    setCloudStatus("請先用 Email 登入", "warn");
+    return;
+  }
+  const client = getCloudClient();
+  if (!client) return;
+  const { data, error } = await client
+    .from("portfolios")
+    .select("holdings, profile_email, updated_at")
+    .eq("user_id", session.user.id)
+    .single();
+  if (error) {
+    setCloudStatus(`雲端讀取失敗：${error.message}`, "danger");
+    return;
+  }
+  holdings = Array.isArray(data.holdings) ? data.holdings : defaultHoldings.map((item) => ({ ...item }));
+  setActiveProfileEmail(data.profile_email || session.user.email);
+  saveHoldings();
+  updateProfileStatus();
+  refreshApp(holdings[0]?.symbol || "VITL");
+  setCloudStatus(`已載入雲端 portfolio · ${new Date(data.updated_at).toLocaleString()}`, "ok");
+}
+
+async function signOutCloud() {
+  const client = getCloudClient();
+  if (!client) return;
+  await client.auth.signOut();
+  cloudSession = null;
+  setCloudStatus("已登出 Supabase", "muted");
 }
 
 function loadSettings() {
@@ -1278,6 +1436,23 @@ function wireControls() {
     refreshApp(holdings[0]?.symbol || "VITL");
   });
 
+  document.querySelector("#saveCloudConfigBtn").addEventListener("click", async () => {
+    const config = readCloudConfigFromUi();
+    if (!config.url || !config.anonKey) {
+      setCloudStatus("請填 Supabase Project URL 和 anon public key", "warn");
+      return;
+    }
+    saveCloudConfig(config);
+    cloudClient = null;
+    setCloudStatus("Supabase 設定已保存", "ok");
+    await refreshCloudSession();
+  });
+
+  document.querySelector("#sendMagicLinkBtn").addEventListener("click", sendMagicLink);
+  document.querySelector("#cloudUploadBtn").addEventListener("click", uploadPortfolioToCloud);
+  document.querySelector("#cloudDownloadBtn").addEventListener("click", downloadPortfolioFromCloud);
+  document.querySelector("#cloudSignOutBtn").addEventListener("click", signOutCloud);
+
   document.querySelector("#exportPortfolioBtn").addEventListener("click", () => {
     document.querySelector("#portfolioExport").value = JSON.stringify(
       { profile: activeProfileEmail() || "local-default", holdings },
@@ -1363,3 +1538,5 @@ renderStockIdeas();
 wireControls();
 applySettings();
 updateProfileStatus();
+applyCloudConfigToUi();
+refreshCloudSession();
