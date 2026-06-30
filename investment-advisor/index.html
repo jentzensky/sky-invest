@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#151924" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="SKY invest" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>SKY invest</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./sky-invest-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./sky-invest-icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar" aria-label="Portfolio navigation">
+        <div class="brand">
+          <span class="brand-mark">S</span>
+          <div>
+            <strong>SKY invest</strong>
+            <span>投資副駕</span>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active" aria-label="總覽">⌘</button>
+          <button class="nav-item" aria-label="持倉">▦</button>
+          <button class="nav-item" aria-label="觀察">◇</button>
+          <button class="nav-item" aria-label="提醒">◌</button>
+        </nav>
+
+        <div class="risk-meter">
+          <span>Portfolio Risk</span>
+          <strong id="riskScore">68</strong>
+          <div class="meter"><i id="riskBar"></i></div>
+          <small>中短期偏進取</small>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">SKY invest · Universal Account</p>
+            <h1>你的中長期資產駕駛艙</h1>
+          </div>
+          <div class="top-actions">
+            <label class="beginner-toggle">
+              <input id="beginnerMode" type="checkbox" checked />
+              新手模式
+            </label>
+            <button id="settingsBtn" class="icon-button" aria-label="Settings">⚙</button>
+            <label class="upload">
+              <input id="imageInput" type="file" accept="image/*" />
+              <span>＋</span>
+              匯入截圖
+            </label>
+            <button id="refreshBtn" class="icon-button" aria-label="重新分析">↻</button>
+          </div>
+        </header>
+
+        <section class="live-sync" aria-label="Live AI sync status">
+          <div class="live-main">
+            <span class="live-dot"></span>
+            <div>
+              <p class="eyebrow">Live AI Sync</p>
+              <h2>秒級行情 · 時事更新 · AI 支撐位建議</h2>
+              <p>
+                股價由行情 API/WebSocket 提供，新聞和財報由資料源更新，AI 只負責分析買賣策略、支撐點、風險和轉換方案。
+              </p>
+            </div>
+          </div>
+          <div class="sync-grid">
+            <article>
+              <span>行情</span>
+              <strong>免費優先</strong>
+              <p>先用免費/延遲資料與手動刷新；重要股票再升級付費行情。</p>
+            </article>
+            <article>
+              <span>時事</span>
+              <strong>每日</strong>
+              <p>新聞、公告、財報、派息，由免費資料源和 Codex 研究整理。</p>
+            </article>
+            <article>
+              <span>AI 建議</span>
+              <strong>按需</strong>
+              <p>你刷新、上傳截圖、或 Codex 每日更新後重新分析。</p>
+            </article>
+            <article>
+              <span>通知</span>
+              <strong>低成本</strong>
+              <p>先用桌面/PWA提醒；手機推播等正式部署後再做。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="free-mode" aria-label="Free operating mode">
+          <div>
+            <p class="eyebrow">Free Mode</p>
+            <h2>免費/低成本運作方案</h2>
+            <p>
+              先不追求秒級行情。SKY invest 可以用免費資料源、截圖讀取、手動刷新和 Codex 每日研究，做到足夠實用的中長期投資建議。
+            </p>
+          </div>
+          <div class="free-flow">
+            <article><strong>1. 你上傳截圖</strong><p>讀取 portfolio、成本、數量和盈虧。</p></article>
+            <article><strong>2. 免費資料更新</strong><p>抓取可用報價、新聞、財報、股息資料。</p></article>
+            <article><strong>3. Codex/AI 分析</strong><p>整理支撐位、買入區、解套、轉倉建議。</p></article>
+            <article><strong>4. App 顯示提醒</strong><p>現金部署、股息核心、風險和下一步。</p></article>
+          </div>
+        </section>
+
+        <section class="cash-alert" aria-label="Cash deployment alert">
+          <div class="alert-main">
+            <p class="eyebrow">Today Cash Alert</p>
+            <h2>今天有現金，先怎麼部署？</h2>
+            <p id="cashAlertText">
+              先保留火力，不急著抄底虧損美股。新資金優先放進股息核心倉，分 3 批慢慢買。
+            </p>
+          </div>
+          <div class="cash-controls">
+            <label>
+              可部署現金
+              <input id="cashInput" type="number" min="0" step="100" value="5000" />
+            </label>
+            <select id="cashCurrency" aria-label="Cash currency">
+              <option value="MYR">MYR</option>
+              <option value="USD">USD</option>
+              <option value="SGD">SGD</option>
+            </select>
+            <button id="notifyBtn" class="notify-button">開啟提醒</button>
+          </div>
+          <div id="deployPlan" class="deploy-plan"></div>
+        </section>
+
+        <section class="manual-trade" aria-label="Manual trade entry">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Manual Portfolio</p>
+              <h2>手動增加買入股票</h2>
+            </div>
+            <span id="saveStatus" class="pill muted">已本地保存</span>
+          </div>
+          <form id="tradeForm" class="trade-form">
+            <label>
+              市場
+              <select id="tradeMarket">
+                <option value="MY">馬股</option>
+                <option value="US">美股</option>
+                <option value="SG">新加坡</option>
+                <option value="HK">港股</option>
+              </select>
+            </label>
+            <label>
+              股票代號
+              <input id="tradeSymbol" type="text" placeholder="例：CIMB" required />
+            </label>
+            <label>
+              名稱
+              <input id="tradeName" type="text" placeholder="例：CIMB Group" />
+            </label>
+            <label>
+              數量
+              <input id="tradeQty" type="number" min="0" step="1" placeholder="100" required />
+            </label>
+            <label>
+              買入價
+              <input id="tradeCost" type="number" min="0" step="0.001" placeholder="7.00" required />
+            </label>
+            <label>
+              現價
+              <input id="tradePrice" type="number" min="0" step="0.001" placeholder="7.00" required />
+            </label>
+            <button type="submit">加入 Portfolio</button>
+          </form>
+          <div class="trade-actions">
+            <button id="savePortfolioBtn" class="mini-button" type="button">保存目前 Portfolio</button>
+            <button id="resetPortfolioBtn" class="mini-button danger-button" type="button">重置示範資料</button>
+          </div>
+          <p class="helper-copy">目前版本會保存在這台裝置的瀏覽器。正式登入版會同步到雲端，iPhone 和 Mac 都能看到同一份 portfolio。</p>
+        </section>
+
+        <section class="portfolio-health" aria-label="Portfolio health">
+          <div class="health-head">
+            <div>
+              <p class="eyebrow">Portfolio Health</p>
+              <h2>你目前最新的總體投資狀況</h2>
+            </div>
+            <span id="healthBadge" class="health-badge">分析中</span>
+          </div>
+          <div id="portfolioHealth" class="health-grid"></div>
+        </section>
+
+        <section class="smart-console" aria-label="Smart portfolio console">
+          <div class="console-copy">
+            <p class="eyebrow">Smart Console</p>
+            <h2>今天打開後，先看這 3 件事</h2>
+            <p>先判斷 portfolio 健康度，再決定新錢部署，最後才看候選股。這樣比較不會被短線情緒帶走。</p>
+          </div>
+          <div class="console-cards">
+            <article>
+              <span>1</span>
+              <strong>先不要救最虧的股票</strong>
+              <p>美股虧損倉先等反彈和財報確認，避免越補越重。</p>
+            </article>
+            <article>
+              <span>2</span>
+              <strong>新錢先建立現金流</strong>
+              <p>Maybank/RHB/CIMB/SCHD/REIT 這類更適合做底倉。</p>
+            </article>
+            <article>
+              <span>3</span>
+              <strong>每次買入都寫出口</strong>
+              <p>買前先知道支撐、止損、回本和減倉位置。</p>
+            </article>
+          </div>
+          <div class="mini-mascot" aria-hidden="true">
+            <div class="mascot-face">
+              <i></i>
+              <i></i>
+              <b></b>
+            </div>
+            <span>SKY Coach</span>
+          </div>
+        </section>
+
+        <section class="chart-section" aria-label="Portfolio chart">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Portfolio Map</p>
+              <h2>資產配置圖</h2>
+            </div>
+            <span class="pill muted">本地估算</span>
+          </div>
+          <div class="chart-layout">
+            <div class="chart-hero">
+              <div class="donut" id="allocationDonut"></div>
+              <div class="chart-caption">
+                <strong>點擊右側市場</strong>
+                <span>查看該市場持有哪些股票和操作建議</span>
+              </div>
+            </div>
+            <div>
+              <div id="allocationLegend" class="allocation-legend"></div>
+              <div id="allocationDetails" class="allocation-details"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="summary-grid" aria-label="Portfolio summary">
+          <article class="summary-panel">
+            <span>總市值</span>
+            <strong id="totalValue">$1,968.80 · RM9,518.00</strong>
+            <small>美股虧損拖累，馬股暫時穩住現金感</small>
+          </article>
+          <article class="summary-panel accent-red">
+            <span>未實現盈虧</span>
+            <strong id="totalPnL">-$862.49 · +RM673.50</strong>
+            <small>SOFI / VITL 是主要壓力位</small>
+          </article>
+          <article class="summary-panel accent-green">
+            <span>今日情緒</span>
+            <strong id="marketMood">謹慎偏防守</strong>
+            <small>先分批，不追高，不一次打滿</small>
+          </article>
+        </section>
+
+        <section class="learning-strip" aria-label="Beginner guide">
+          <article>
+            <span>第一步</span>
+            <strong>先看成本</strong>
+            <p>成本比現價高太多，不代表一定要補。先判斷它是短期跌，還是基本面變差。</p>
+          </article>
+          <article>
+            <span>第二步</span>
+            <strong>只在支撐附近買</strong>
+            <p>avg down 不是越跌越買，而是到計劃價才分批，不然容易越補越重。</p>
+          </article>
+          <article>
+            <span>第三步</span>
+            <strong>每筆先想出口</strong>
+            <p>買之前先知道止損、回本、減倉位置。新手最怕只想買，不想賣。</p>
+          </article>
+        </section>
+
+        <section class="main-grid">
+          <section class="panel holdings-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Holdings</p>
+                <h2>持倉診斷</h2>
+              </div>
+              <div class="segmented" role="tablist" aria-label="Market filter">
+                <button class="active" data-filter="all">全部</button>
+                <button data-filter="US">美股</button>
+                <button data-filter="MY">馬股</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>股票</th>
+                    <th>數量</th>
+                    <th>現價</th>
+                    <th>成本</th>
+                    <th>買入區 / 支撐</th>
+                    <th>時事</th>
+                    <th>聲量</th>
+                    <th>狀態</th>
+                    <th>動作</th>
+                  </tr>
+                </thead>
+                <tbody id="holdingsBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel advisor-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Advisor</p>
+                <h2>今日建議</h2>
+              </div>
+              <span id="confidence" class="pill">信心 74%</span>
+            </div>
+
+            <div id="focusCard" class="focus-card"></div>
+
+            <div class="strategy-list" id="strategyList"></div>
+          </section>
+        </section>
+
+        <section class="lower-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Average Down</p>
+                <h2>補倉計劃</h2>
+              </div>
+              <span class="pill muted">分 3 層</span>
+            </div>
+            <div id="avgPlan" class="plan-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Daily Watch</p>
+                <h2>每日更新重點</h2>
+              </div>
+              <button class="icon-button small" aria-label="新增提醒">＋</button>
+            </div>
+            <div class="watch-list">
+              <label><input type="checkbox" checked /> 財報日與 guidance 有沒有下修</label>
+              <label><input type="checkbox" checked /> 跌到第一支撐才考慮補，不在半空加倉</label>
+              <label><input type="checkbox" /> 馬股銀行股派息與大盤資金流</label>
+              <label><input type="checkbox" /> 美股成長股成交量是否放大</label>
+            </div>
+          </section>
+        </section>
+
+        <section class="income-grid">
+          <section class="panel income-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Dividend Core</p>
+                <h2>穩定股息核心倉</h2>
+              </div>
+              <div class="segmented region-tabs" role="tablist" aria-label="Dividend region filter">
+                <button class="active" data-region="all">全部</button>
+                <button data-region="MY">馬來西亞</button>
+                <button data-region="US">美國</button>
+                <button data-region="SG">新加坡</button>
+                <button data-region="CN">中國</button>
+              </div>
+            </div>
+            <div id="dividendCore" class="dividend-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Rotation Plan</p>
+                <h2>美股解套轉換策略</h2>
+              </div>
+              <span class="pill muted">不硬砍</span>
+            </div>
+            <div class="rotation-plan">
+              <article>
+                <strong>第一階段：停止加重虧損倉</strong>
+                <p>SOFI / VITL 這種已被成本鎖住的股票，先不要為了回本一直補。只在財報沒有惡化、跌到支撐位、成交量止跌時才小補。</p>
+              </article>
+              <article>
+                <strong>第二階段：反彈到壓力位減壓</strong>
+                <p>不是等完全回本才賣。若反彈到成本下方 10%-15% 或技術壓力位，可以先減一部分，把資金轉去股息核心倉。</p>
+              </article>
+              <article>
+                <strong>第三階段：建立股息現金流</strong>
+                <p>把新資金優先放到 Maybank、RHB、CIMB 這類可追蹤股息的資產，每月或每季慢慢加，讓 portfolio 從「等反彈」變成「有現金流」。</p>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="idea-lab" aria-label="Stock idea lab">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Stock Radar</p>
+              <h2>可觀察股票分類</h2>
+            </div>
+            <div class="segmented idea-tabs" role="tablist" aria-label="Stock idea filter">
+              <button class="active" data-idea="all">全部</button>
+              <button data-idea="conservative">保守</button>
+              <button data-idea="long">長期</button>
+              <button data-idea="growth">成長</button>
+              <button data-idea="potential">潛力</button>
+            </div>
+          </div>
+          <div id="stockIdeas" class="idea-grid"></div>
+        </section>
+
+        <section class="learning-hub" aria-label="Learning hub">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Learning Hub</p>
+              <h2>華語投資學習頻道</h2>
+            </div>
+            <span class="pill muted">華語優先</span>
+          </div>
+          <div id="learningHub" class="learning-grid"></div>
+        </section>
+
+        <section class="codex-briefing" aria-label="Codex scheduled briefing">
+          <div class="briefing-head">
+            <div>
+              <p class="eyebrow">Codex Briefing</p>
+              <h2>讓 Codex 定時幫你整理</h2>
+              <p>每天或每週整理市場時事、你的 portfolio、候選股和一個投資知識點，適合你和女朋友一起看。</p>
+            </div>
+            <span class="pill">建議每天 9:00 AM</span>
+          </div>
+          <div id="codexBriefingPlan" class="briefing-grid"></div>
+        </section>
+
+        <section class="tool-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Allocation</p>
+                <h2>資產配置</h2>
+              </div>
+              <span class="pill muted">新手保護</span>
+            </div>
+            <div class="allocation">
+              <div>
+                <strong>美股成長</strong>
+                <div class="bar"><i style="width: 17%"></i></div>
+                <span>SOFI / NU / VITL / GRAB · 波動較高</span>
+              </div>
+              <div>
+                <strong>馬股穩定</strong>
+                <div class="bar green"><i style="width: 83%"></i></div>
+                <span>MATRIX / RHBBANK / MAYBANK · 股息和防守感較強</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Checklist</p>
+                <h2>買入前檢查</h2>
+              </div>
+              <span class="pill muted">必看</span>
+            </div>
+            <div id="tradeChecklist" class="check-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Market Kit</p>
+                <h2>市場基本功能</h2>
+              </div>
+              <span class="pill muted">Roadmap</span>
+            </div>
+            <div class="feature-grid">
+              <article><strong>即時行情</strong><p>股價、漲跌、成交量、52週高低。</p></article>
+              <article><strong>財報提醒</strong><p>收入、EPS、guidance、毛利率變化。</p></article>
+              <article><strong>股息追蹤</strong><p>馬股銀行與派息股的除權日和殖利率。</p></article>
+              <article><strong>新聞摘要</strong><p>只抓影響股價的重點，不看噪音。</p></article>
+              <article><strong>估值溫度</strong><p>PE、PS、成長率、同業比較。</p></article>
+              <article><strong>提醒系統</strong><p>到支撐、破位、財報前自動提醒。</p></article>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Skill Stack</p>
+                <h2>我建議之後接的能力</h2>
+              </div>
+              <span class="pill muted">不用急</span>
+            </div>
+            <div class="plugin-list">
+              <article><strong>截圖 OCR</strong><p>讓你每次丟 portfolio 截圖後，自動讀股票、數量、成本。</p></article>
+              <article><strong>行情資料源</strong><p>接美股和馬股價格、財報、派息、新聞。</p></article>
+              <article><strong>每日自動更新</strong><p>每天固定幫你整理「今天該不該動」。</p></article>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Production Engine</p>
+                <h2>免費優先的接法</h2>
+              </div>
+              <span class="pill">Free First</span>
+            </div>
+            <div class="engine-list">
+              <article><strong>免費行情資料</strong><p>先用免費 quote/daily/intraday API 或延遲資料。美股較容易，馬股/新加坡/港股可能需要混合來源。</p></article>
+              <article><strong>手動 + 定時更新</strong><p>你打開 app 時刷新；也可以每天固定讓 Codex 幫你整理一次 portfolio 狀況。</p></article>
+              <article><strong>OpenAI/Codex 分析</strong><p>AI 讀取行情、新聞、財報和你的成本後，產生買入區、支撐/阻力、解套、轉倉建議。</p></article>
+              <article><strong>免費登入資料庫</strong><p>可先用 Supabase/Firebase free tier，讓你和女朋友各自登入、同步 portfolio。</p></article>
+              <article><strong>通知策略</strong><p>先做桌面/PWA提醒；手機推播等部署到雲端後，用 Firebase/Apple Push 再加。</p></article>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <aside class="right-rail">
+        <section class="image-panel">
+          <p class="eyebrow">Screenshot</p>
+          <div id="previewBox" class="preview-box">
+            <span>上傳新的 portfolio 截圖後，會在這裡預覽</span>
+          </div>
+        </section>
+
+        <section class="panel compact">
+          <p class="eyebrow">My Coach View</p>
+          <h2>你的風格</h2>
+          <p class="coach-copy">
+            你目前不是長線佛系型，而是中短期想抓節奏。系統會優先提醒「成本是否舒服、跌到哪裡才值得補、什麼位置應該減壓」。
+          </p>
+          <div class="coach-tags">
+            <span>中短期</span>
+            <span>控風險</span>
+            <span>分批</span>
+          </div>
+        </section>
+
+        <section class="panel compact">
+          <p class="eyebrow">Beginner Glossary</p>
+          <h2>小白字典</h2>
+          <div id="glossary" class="glossary"></div>
+        </section>
+      </aside>
+    </main>
+
+    <button id="codexDockBtn" class="codex-dock" type="button" aria-label="Open Codex assistant">
+      <span>Codex</span>
+      <strong>AI 助手</strong>
+    </button>
+
+    <section id="codexPanel" class="codex-panel" aria-label="Codex assistant panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Codex Link</p>
+          <h2>連接你的 Codex 助手</h2>
+        </div>
+        <button id="closeCodexPanel" class="icon-button small" type="button" aria-label="Close Codex panel">×</button>
+      </div>
+      <p>
+        目前可以把 portfolio 保存在本機，然後你直接在 Codex 對我說：「更新 SKY invest 今日狀況」。正式版會用登入和雲端資料庫，讓 Codex 讀取你的 portfolio 後自動分析。
+      </p>
+      <div class="codex-actions">
+        <button id="copyCodexPrompt" class="mini-button" type="button">複製給 Codex 的指令</button>
+        <button id="exportPortfolioBtn" class="mini-button" type="button">導出 Portfolio JSON</button>
+      </div>
+      <textarea id="portfolioExport" readonly placeholder="導出的 portfolio 會出現在這裡"></textarea>
+    </section>
+
+    <section id="settingsPanel" class="settings-panel" aria-label="Settings panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Settings</p>
+          <h2>基礎設定</h2>
+        </div>
+        <button id="closeSettingsPanel" class="icon-button small" type="button" aria-label="Close settings">×</button>
+      </div>
+      <div class="settings-grid">
+        <label>
+          主題
+          <select id="themeSelect">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="sky">Sky</option>
+          </select>
+        </label>
+        <label>
+          語言
+          <select id="languageSelect">
+            <option value="zh">華語</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label>
+          字體大小
+          <select id="fontSizeSelect">
+            <option value="normal">正常</option>
+            <option value="large">大字</option>
+            <option value="compact">小字</option>
+          </select>
+        </label>
+        <label>
+          版面密度
+          <select id="densitySelect">
+            <option value="comfortable">舒服</option>
+            <option value="compact">緊湊</option>
+          </select>
+        </label>
+      </div>
+      <div class="settings-actions">
+        <button id="collapseAllBtn" class="mini-button" type="button">全部收合</button>
+        <button id="expandAllBtn" class="mini-button" type="button">全部展開</button>
+        <button id="testSupportAlertBtn" class="mini-button" type="button">測試支撐提醒</button>
+      </div>
+      <p class="helper-copy">支撐提醒會在你的持倉跌到買入區或危險支撐附近時通知你。正式手機推播需要部署成 PWA/雲端版本。</p>
+    </section>
+
+    <section id="sentimentPanel" class="sentiment-panel" aria-label="Stock sentiment panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Market Comments</p>
+          <h2 id="sentimentTitle">股票聲量</h2>
+        </div>
+        <button id="closeSentimentPanel" class="icon-button small" type="button" aria-label="Close sentiment panel">×</button>
+      </div>
+      <div id="sentimentBody" class="sentiment-body"></div>
+    </section>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

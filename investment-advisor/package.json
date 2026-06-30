@@ -1,0 +1,10 @@
+{
+  "name": "sky-invest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SKY invest personal portfolio dashboard PWA.",
+  "scripts": {
+    "start": "npx serve .",
+    "build": "echo \"Static app: no build step required\""
+  }
+}

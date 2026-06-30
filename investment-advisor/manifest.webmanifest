@@ -1,0 +1,18 @@
+{
+  "name": "SKY invest",
+  "short_name": "SKY invest",
+  "description": "Personal portfolio cockpit for dividend investing, market alerts, and cash deployment planning.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#151924",
+  "theme_color": "#151924",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./sky-invest-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
