@@ -490,10 +490,26 @@ const marketPulse = {
 
 const pct = (item) => ((item.price - item.cost) / item.cost) * 100;
 const fmt = (value, market = "US") => `${currency[market]}${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+const profileKey = (email) => `skyInvestHoldings:${email.toLowerCase().trim()}`;
+
+function activeProfileEmail() {
+  return (localStorage.getItem("skyInvestActiveProfile") || "").trim();
+}
+
+function setActiveProfileEmail(email) {
+  const normalized = email.toLowerCase().trim();
+  if (normalized) {
+    localStorage.setItem("skyInvestActiveProfile", normalized);
+  } else {
+    localStorage.removeItem("skyInvestActiveProfile");
+  }
+  return normalized;
+}
 
 function loadHoldings() {
   try {
-    const saved = localStorage.getItem("skyInvestHoldings");
+    const email = activeProfileEmail();
+    const saved = localStorage.getItem(email ? profileKey(email) : "skyInvestHoldings");
     if (saved) return JSON.parse(saved);
   } catch (error) {
     console.warn("Unable to load saved portfolio", error);
@@ -502,10 +518,25 @@ function loadHoldings() {
 }
 
 function saveHoldings() {
-  localStorage.setItem("skyInvestHoldings", JSON.stringify(holdings));
+  const email = activeProfileEmail();
+  localStorage.setItem(email ? profileKey(email) : "skyInvestHoldings", JSON.stringify(holdings));
   const status = document.querySelector("#saveStatus");
   if (status) {
-    status.textContent = `已保存 · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    const owner = email ? email.split("@")[0] : "本機預設";
+    status.textContent = `${owner} 已保存 · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  }
+  updateProfileStatus();
+}
+
+function updateProfileStatus() {
+  const email = activeProfileEmail();
+  const input = document.querySelector("#profileEmail");
+  const status = document.querySelector("#profileStatus");
+  if (input) input.value = email;
+  if (status) {
+    status.textContent = email
+      ? `目前 profile：${email} · 此裝置獨立保存`
+      : "目前使用本機預設 portfolio";
   }
 }
 
@@ -1224,12 +1255,40 @@ function wireControls() {
     document.querySelector("#codexPanel").classList.remove("open");
   });
 
+  document.querySelector("#switchProfileBtn").addEventListener("click", () => {
+    const email = document.querySelector("#profileEmail").value.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      alert("請輸入完整 Gmail，例如 name@gmail.com");
+      return;
+    }
+    setActiveProfileEmail(email);
+    holdings = loadHoldings();
+    updateProfileStatus();
+    refreshApp(holdings[0]?.symbol || "VITL");
+  });
+
+  document.querySelector("#saveProfileBtn").addEventListener("click", () => {
+    const email = document.querySelector("#profileEmail").value.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      alert("請輸入完整 Gmail，例如 name@gmail.com");
+      return;
+    }
+    setActiveProfileEmail(email);
+    saveHoldings();
+    refreshApp(holdings[0]?.symbol || "VITL");
+  });
+
   document.querySelector("#exportPortfolioBtn").addEventListener("click", () => {
-    document.querySelector("#portfolioExport").value = JSON.stringify(holdings, null, 2);
+    document.querySelector("#portfolioExport").value = JSON.stringify(
+      { profile: activeProfileEmail() || "local-default", holdings },
+      null,
+      2,
+    );
   });
 
   document.querySelector("#copyCodexPrompt").addEventListener("click", async () => {
-    const prompt = `請根據這份 SKY invest portfolio 更新今日投資狀況、支撐位、買入區、股息核心和解套建議：\n\n${JSON.stringify(holdings, null, 2)}`;
+    const owner = activeProfileEmail() || "本機預設 profile";
+    const prompt = `請根據這份 SKY invest portfolio 更新 ${owner} 的今日投資狀況、支撐位、買入區、股息核心和解套建議：\n\n${JSON.stringify(holdings, null, 2)}`;
     document.querySelector("#portfolioExport").value = prompt;
     try {
       await navigator.clipboard.writeText(prompt);
@@ -1303,3 +1362,4 @@ renderCodexBriefingPlan();
 renderStockIdeas();
 wireControls();
 applySettings();
+updateProfileStatus();
