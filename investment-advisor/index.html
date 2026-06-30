@@ -574,8 +574,19 @@
         <button id="closeCodexPanel" class="icon-button small" type="button" aria-label="Close Codex panel">×</button>
       </div>
       <p>
-        目前可以把 portfolio 保存在本機，然後你直接在 Codex 對我說：「更新 SKY invest 今日狀況」。正式版會用登入和雲端資料庫，讓 Codex 讀取你的 portfolio 後自動分析。
+        目前可以用 Gmail profile 把 portfolio 分開保存在本機。你和女朋友可以各自輸入自己的 Gmail，各自看到自己的持倉和建議。跨裝置同步之後再接雲端登入資料庫。
       </p>
+      <div class="profile-box">
+        <label>
+          Gmail Profile
+          <input id="profileEmail" type="email" placeholder="you@gmail.com" autocomplete="email" />
+        </label>
+        <div class="profile-actions">
+          <button id="switchProfileBtn" class="mini-button" type="button">切換 / 載入</button>
+          <button id="saveProfileBtn" class="mini-button" type="button">保存到這個 Gmail</button>
+        </div>
+        <span id="profileStatus" class="profile-status">目前使用本機預設 portfolio</span>
+      </div>
       <div class="codex-actions">
         <button id="copyCodexPrompt" class="mini-button" type="button">複製給 Codex 的指令</button>
         <button id="exportPortfolioBtn" class="mini-button" type="button">導出 Portfolio JSON</button>
