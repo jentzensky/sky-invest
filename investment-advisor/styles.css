@@ -1768,6 +1768,29 @@ td {
   background: rgba(9, 12, 18, 0.42);
 }
 
+.cloud-box {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(62, 228, 160, 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(62, 228, 160, 0.08), rgba(125, 181, 255, 0.05)),
+    rgba(9, 12, 18, 0.44);
+}
+
+.cloud-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cloud-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
 .profile-box label {
   display: grid;
   gap: 6px;
@@ -1775,7 +1798,23 @@ td {
   font-size: 12px;
 }
 
+.cloud-box label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .profile-box input {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(8, 9, 12, 0.86);
+  color: var(--text);
+  padding: 0 12px;
+}
+
+.cloud-box input {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -1793,6 +1832,43 @@ td {
 .profile-status {
   color: var(--muted);
   font-size: 12px;
+}
+
+.profile-status[data-tone="ok"] {
+  color: var(--green);
+}
+
+.profile-status[data-tone="warn"] {
+  color: var(--amber);
+}
+
+.profile-status[data-tone="danger"] {
+  color: var(--red);
+}
+
+.cloud-sql {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.cloud-sql summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.cloud-sql textarea {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 10px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #101217;
+  color: #d8e2ef;
+  padding: 12px;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 #portfolioExport {
